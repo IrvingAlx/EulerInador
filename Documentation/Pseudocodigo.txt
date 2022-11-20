@@ -1,0 +1,145 @@
+Algorithm proyectoFinal
+
+File: def.h
+begin
+include stdio.h, math.h, stdlib.h
+define numberOfDerivates: 1
+
+record enum
+  WRONG_ARGUMENTS
+  CORRECT_ARGUMENTS
+end_record
+type ERROR_CODE
+
+type record data *nodo
+
+end_
+/////////////////////////////////////////////////////
+file proyectoFinal.c
+
+include ../libs/def.h
+
+fuction createDerivate(float: x, float: t, float: k1)
+procedure plotResults(void);
+fuction createStruct(nodo: datos, char: argv)
+fuction createSolutionFile(nodo: datos)
+procedure ERROR_CODE argumentsVerification(int: argc)
+procedure newNodo(void)
+ 
+begin
+  type nodo 
+var datos
+  remove("solutions.dat")
+    argumentsVerification(argc)
+  datos <- newNodo()
+  datos <- createStruct(datos, argv)
+  createSolutionFile(datos)
+  plotResults()
+  return (1)
+end_fuction 
+/////////////////////////////////////////////////////
+file funciones.c
+
+#include "../libs/def.h"
+
+record data
+ float: t
+  float: tinitial
+  float: tmax
+  float: yinitial
+  float: h
+  float: x[1]
+  float: derivalue[1]
+  float: yaprox
+  float: yexact
+end_record
+ 
+fuction createDerivate (float: x, float: t, float: derivalue)
+begin
+derivalue[0] <- -2*x[0]-exp(-4*t)
+end_ fuction
+_____________________________________________________________________________
+procedure plotResults(void)
+begin
+
+  FILE *gnupipe
+
+  gnupipe=popen("gnuplot -persist","w")
+
+  fwrite(gnupipe,"plot \"solutions.dat\" using 1:3 with lines\n")
+
+  pclose(gnupipe)
+
+end_procedure
+ 
+fuction createSolutionFile(nodo: datos)
+begin
+ type real
+var i
+FILE *fp;
+  fp <- fopen("solutions.dat", "w")
+begin
+for (datos->t <- datos->tinitial; datos->t < datos->tmax; datos->t+=datos->h) 
+  createDerivate(datos->x, datos->t, datos->derivalue)
+  datos->yaprox <- datos->x[0];
+  datos->yexact <- -2*(datos->x[0]) - exp(-4*datos->t)
+  fwrite(fp," %4.2f \t %6.4f \t%6.4f\n", datos->t, datos->yexact, datos->yaprox)
+      for i = 0  i < 1
+    begin
+      datos->x[i] <- datos->x[i] + datos->h*datos->derivalue[i]
+    end_for
+end_for
+      fclose(fp)
+end_fuction
+_____________________________________________________________________________
+ 
+fuction createStruct(nodo: datos, char: argv)
+begin
+type  float 
+var yaprox, yexact , x[1], k1[1],  h, t, t0, tmax, y0, buffer[10]
+type real 
+var i
+ sreadf(argv[1], "%f", &t0)
+    sread(argv[2], "%f", &tmax)
+      sread(argv[3], "%f", &y0)
+        sread(argv[4], "%f", &h)
+        datos->tinitial <- t0
+      datos->tmax <- tmax
+    datos->yinitial <- y0
+  datos->h <- h
+
+  datos->x[0] <- y0 
+  datos->yaprox <- datos->x[0]
+
+return (datos) 
+end_ fuction
+procedure newNodo(void)
+begin
+type nodo
+  var myNodo 
+   myNodo <- NULL
+   myNodo <- malloc(sizeof(struct data))
+   myNodo <- initNewNodo(myNodo)
+   return (myNodo)
+end_procedure
+ 
+procedure initNewNodo(nodo: newNodo)
+begin
+  newNodo->t <- 0
+  newNodo->tinitial <- 0
+  newNodo->tmax <- 0
+  newNodo->h <- 0
+  newNodo->yaprox <- 0
+  newNodo->yexact <- 0
+  newNodo->yinitial <- 0 
+    return (newNodo)
+end_procedure
+procedure ERROR_CODE argumentsVerification(int argc)
+begin
+begin
+  if argc != 5 then
+  write("Error en el numero de argumentos ingresados....Saliendo")
+  return (0)
+  end_if
+  return (1)
+end_procedure
